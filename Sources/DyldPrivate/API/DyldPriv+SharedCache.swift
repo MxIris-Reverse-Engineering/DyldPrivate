@@ -119,6 +119,34 @@ extension DyldPriv {
             return String(cString: result)
         }
     }
+
+    // MARK: - dyld_need_closure
+
+    public typealias NeedClosureFunction = @convention(c) (
+        UnsafePointer<CChar>?,
+        UnsafePointer<CChar>?
+    ) -> Bool
+
+    private static let needClosureFunction = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedDyldPrivSharedCacheSymbols.$needClosure,
+        as: NeedClosureFunction.self
+    )
+
+    /// Returns whether the given app needs a dyld closure built.
+    ///
+    /// - Parameters:
+    ///   - executablePath: The path to the executable.
+    ///   - dataContainerRootDir: The root directory of the app's data container.
+    /// - Returns: `true` if a closure needs to be built, `false` if one is already up-to-date,
+    ///   or `nil` if the symbol could not be resolved.
+    public static func needsClosure(executablePath: String, dataContainerRootDir: String) -> Bool? {
+        guard let function = needClosureFunction else { return nil }
+        return executablePath.withCString { executablePathPointer in
+            dataContainerRootDir.withCString { dataContainerRootDirPointer in
+                function(executablePathPointer, dataContainerRootDirPointer)
+            }
+        }
+    }
 }
 
 #endif

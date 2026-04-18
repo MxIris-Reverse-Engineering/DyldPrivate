@@ -12,6 +12,13 @@ func getSharedCacheUUIDLiveInvoke() {
 
 
 @Test
+func needsClosureLiveInvoke() {
+    // Pass harmless args; accept either bool result.
+    let result = DyldPriv.needsClosure(executablePath: "/usr/bin/true", dataContainerRootDir: "/tmp")
+    _ = result
+}
+
+@Test
 func sharedCacheRealPathLiveInvoke() {
     // Pass a plausible dyld path; we accept a non-nil result or nil (not in cache).
     let result = DyldPriv.sharedCacheRealPath(for: "/usr/lib/libobjc.A.dylib")
