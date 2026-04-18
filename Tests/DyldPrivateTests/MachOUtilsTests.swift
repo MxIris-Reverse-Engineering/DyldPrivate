@@ -130,4 +130,15 @@ func sourceVersionResolvesAndInvokes() {
         #expect(version > 0)
     }
 }
+
+@Test
+func forEachRunnableArchNameResolvesAndInvokes() {
+    // Function 7 takes no mach_header — it enumerates runnable arch names globally.
+    var archNames: [String] = []
+    MachOUtils.forEachRunnableArchName { archName, _ in
+        archNames.append(archName)
+    }
+    // On a real Apple platform there is always at least one runnable arch.
+    #expect(!archNames.isEmpty)
+}
 #endif

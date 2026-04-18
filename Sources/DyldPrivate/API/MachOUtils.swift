@@ -215,4 +215,35 @@ extension MachOUtils {
         return version
     }
 }
+
+// MARK: - Function 7: macho_for_each_runnable_arch_name
+
+extension MachOUtils {
+    public typealias ForEachRunnableArchNameFunction = @convention(c) (
+        @convention(block) (UnsafePointer<CChar>?, UnsafeMutablePointer<Bool>?) -> Void
+    ) -> Void
+
+    private static let forEachRunnableArchNameFunction = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedMachOUtilsSymbols.$machoForEachRunnableArchName,
+        as: ForEachRunnableArchNameFunction.self
+    )
+
+    /// Iterates over all runnable architecture names on the current platform.
+    /// - Parameter body: Called for each arch name and a stop flag.
+    ///                   Set `stop` to `true` to halt iteration.
+    public static func forEachRunnableArchName(
+        _ body: @escaping (_ archName: String, _ stop: inout Bool) -> Void
+    ) {
+        guard let function = forEachRunnableArchNameFunction else {
+            return
+        }
+        let block: @convention(block) (UnsafePointer<CChar>?, UnsafeMutablePointer<Bool>?) -> Void = { archName, stop in
+            guard let archName, let stop else { return }
+            var localStop = stop.pointee
+            body(String(cString: archName), &localStop)
+            stop.pointee = localStop
+        }
+        function(block)
+    }
+}
 #endif
