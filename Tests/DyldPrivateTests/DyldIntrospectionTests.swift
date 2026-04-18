@@ -409,4 +409,22 @@ func imageCopyUUIDResolves() {
     }
     #expect(successCount > 0, "imageCopyUUID must successfully return a UUID for at least one image")
 }
+
+// MARK: - Function 24: dyld_image_get_installname
+
+@Test
+func imageGetInstallnameResolves() {
+    // Use shared cache images which always have install names.
+    var foundInstallName = false
+    DyldIntrospection.forEachInstalledSharedCache { cacheHandle in
+        guard !foundInstallName else { return }
+        DyldIntrospection.forEachImage(in: cacheHandle) { imageHandle in
+            guard !foundInstallName else { return }
+            if let installName = DyldIntrospection.installName(of: imageHandle), !installName.isEmpty {
+                foundInstallName = true
+            }
+        }
+    }
+    #expect(foundInstallName, "imageGetInstallname must return a non-empty install name for at least one shared cache image")
+}
 #endif

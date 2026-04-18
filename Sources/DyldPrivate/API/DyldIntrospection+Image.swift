@@ -48,4 +48,30 @@ extension DyldIntrospection {
         return succeeded ? uuidBuffer : nil
     }
 }
+
+// MARK: - Function 24: dyld_image_get_installname
+
+extension DyldIntrospection {
+    public typealias ImageGetInstallnameFunction = @convention(c) (OpaquePointer?) -> UnsafePointer<CChar>?
+
+    private static let imageGetInstallnameFunction = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedDyldIntrospectionSymbols.$imageGetInstallname,
+        as: ImageGetInstallnameFunction.self
+    )
+
+    /// Returns the install name of the image.
+    ///
+    /// - Parameter image: A valid `DyldImageHandle`.
+    /// - Returns: The install name as a `String`, or nil if the symbol could not be resolved,
+    ///   the buffer is unavailable, or the image has no install name.
+    public static func installName(of image: DyldImageHandle) -> String? {
+        guard let function = imageGetInstallnameFunction else {
+            return nil
+        }
+        guard let cString = function(image.rawValue) else {
+            return nil
+        }
+        return String(cString: cString)
+    }
+}
 #endif
