@@ -186,4 +186,48 @@ extension DyldIntrospection {
         return segmentName.withCString { function(image.rawValue, $0, block) }
     }
 }
+
+// MARK: - Function 28: dyld_image_for_each_section_info
+
+extension DyldIntrospection {
+    public typealias ImageForEachSectionInfoFunction = @convention(c) (
+        OpaquePointer?,
+        @convention(block) (UnsafePointer<CChar>?, UnsafePointer<CChar>?, UInt64, UInt64) -> Void
+    ) -> Bool
+
+    private static let imageForEachSectionInfoFunction = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedDyldIntrospectionSymbols.$imageForEachSectionInfo,
+        as: ImageForEachSectionInfoFunction.self
+    )
+
+    /// Iterates over all sections in the image.
+    ///
+    /// - Parameters:
+    ///   - image: A valid `DyldImageHandle`.
+    ///   - body: Called for each section with its segment name, section name, VM address, and
+    ///     VM size.
+    /// - Returns: `true` if iteration succeeded, `false` if the underlying data was unavailable
+    ///   or the symbol could not be resolved.
+    @discardableResult
+    public static func forEachSectionInfo(
+        in image: DyldImageHandle,
+        _ body: @escaping (
+            _ segmentName: String,
+            _ sectionName: String,
+            _ vmAddress: UInt64,
+            _ vmSize: UInt64
+        ) -> Void
+    ) -> Bool {
+        guard let function = imageForEachSectionInfoFunction else {
+            return false
+        }
+        let block: @convention(block) (UnsafePointer<CChar>?, UnsafePointer<CChar>?, UInt64, UInt64) -> Void = {
+            segmentNamePointer, sectionNamePointer, vmAddress, vmSize in
+            let segmentName = segmentNamePointer.map { String(cString: $0) } ?? ""
+            let sectionName = sectionNamePointer.map { String(cString: $0) } ?? ""
+            body(segmentName, sectionName, vmAddress, vmSize)
+        }
+        return function(image.rawValue, block)
+    }
+}
 #endif
