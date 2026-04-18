@@ -115,4 +115,29 @@ extension DyldIntrospection {
         return filePath.withCString { function($0, block) }
     }
 }
+
+// MARK: - Function 15: dyld_shared_cache_pin_mapping
+
+extension DyldIntrospection {
+    public typealias SharedCachePinMappingFunction = @convention(c) (OpaquePointer?) -> Bool
+
+    private static let sharedCachePinMappingFunction = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedDyldIntrospectionSymbols.$sharedCachePinMapping,
+        as: SharedCachePinMappingFunction.self
+    )
+
+    /// Maps the shared cache into a contiguous range of memory so that content pointers remain
+    /// valid beyond the lifetime of the enclosing block.
+    ///
+    /// - Parameter cache: A valid `DyldSharedCacheHandle`.
+    /// - Returns: `true` if the cache was successfully pinned, `false` otherwise (including if
+    ///   there is not enough contiguous address space or the symbol could not be resolved).
+    @discardableResult
+    public static func pinMapping(of cache: DyldSharedCacheHandle) -> Bool {
+        guard let function = sharedCachePinMappingFunction else {
+            return false
+        }
+        return function(cache.rawValue)
+    }
+}
 #endif

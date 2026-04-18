@@ -264,4 +264,22 @@ func sharedCacheForFileResolves() {
         #expect(Bool(true), "sharedCacheForFile did not crash (symbol resolved)")
     }
 }
+
+// MARK: - Function 15: dyld_shared_cache_pin_mapping
+
+@Test
+func sharedCachePinMappingResolves() {
+    // Use forEachInstalledSharedCache to get a cache handle scoped to the block lifetime,
+    // then call pinMapping inside the block.
+    var pinnedSuccessfully = false
+    DyldIntrospection.forEachInstalledSharedCache { cacheHandle in
+        let pinResult = DyldIntrospection.pinMapping(of: cacheHandle)
+        if pinResult {
+            pinnedSuccessfully = true
+            // unpinMapping will be called in the dyld_shared_cache_unpin_mapping commit.
+            // Pinned mappings are released when the test process exits.
+        }
+    }
+    #expect(pinnedSuccessfully, "pinMapping must succeed for at least one installed shared cache")
+}
 #endif
