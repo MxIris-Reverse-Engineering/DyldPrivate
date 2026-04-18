@@ -214,4 +214,26 @@ extension DyldIntrospection {
         return function(cache.rawValue)
     }
 }
+
+// MARK: - Function 19: dyld_shared_cache_get_mapped_size
+
+extension DyldIntrospection {
+    public typealias SharedCacheGetMappedSizeFunction = @convention(c) (OpaquePointer?) -> UInt64
+
+    private static let sharedCacheGetMappedSizeFunction = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedDyldIntrospectionSymbols.$sharedCacheGetMappedSize,
+        as: SharedCacheGetMappedSizeFunction.self
+    )
+
+    /// Returns the total mapped size of the shared cache.
+    ///
+    /// - Parameter cache: A valid `DyldSharedCacheHandle`.
+    /// - Returns: The mapped size in bytes as a `UInt64`, or nil if the symbol could not be resolved.
+    public static func mappedSize(of cache: DyldSharedCacheHandle) -> UInt64? {
+        guard let function = sharedCacheGetMappedSizeFunction else {
+            return nil
+        }
+        return function(cache.rawValue)
+    }
+}
 #endif

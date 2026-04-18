@@ -322,4 +322,21 @@ func sharedCacheGetBaseAddressResolves() {
     }
     #expect(capturedBaseAddress != nil, "baseAddress must return a non-nil value for an installed shared cache")
 }
+
+// MARK: - Function 19: dyld_shared_cache_get_mapped_size
+
+@Test
+func sharedCacheGetMappedSizeResolves() {
+    var capturedMappedSize: UInt64?
+    DyldIntrospection.forEachInstalledSharedCache { cacheHandle in
+        if capturedMappedSize == nil {
+            capturedMappedSize = DyldIntrospection.mappedSize(of: cacheHandle)
+        }
+    }
+    guard let mappedSize = capturedMappedSize else {
+        Issue.record("mappedSize returned nil for installed shared cache")
+        return
+    }
+    #expect(mappedSize > 0, "mappedSize must be greater than zero for a valid shared cache")
+}
 #endif
