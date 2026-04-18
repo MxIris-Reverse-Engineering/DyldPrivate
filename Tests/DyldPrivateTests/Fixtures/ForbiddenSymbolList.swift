@@ -53,6 +53,8 @@ enum ForbiddenSymbolList {
         "dyld_shared_cache_is_mapped_private",
         "dyld_shared_cache_copy_uuid",
         "dyld_shared_cache_for_each_image",
+        // dyld_priv.h — runtime launch
+        "_dyld_launch_mode",
         // dyld_introspection.h — image accessors
         "dyld_image_copy_uuid",
         "dyld_image_get_installname",

@@ -42,6 +42,12 @@ enum ObfuscatedDyldProcessInfoSymbols {
     }
 }
 
+enum ObfuscatedDyldPrivRuntimeSymbols {
+    static #Obfuscate {
+        let launchMode = "_dyld_launch_mode"
+    }
+}
+
 enum ObfuscatedDyldIntrospectionSymbols {
     static #Obfuscate {
         // Process lifecycle
