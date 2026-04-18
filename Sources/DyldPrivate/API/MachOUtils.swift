@@ -109,4 +109,44 @@ extension MachOUtils {
         return function(header, mappedSize, block)
     }
 }
+
+// MARK: - Function 4: macho_for_each_exported_symbol
+
+extension MachOUtils {
+    public typealias ForEachExportedSymbolFunction = @convention(c) (
+        UnsafePointer<mach_header>?,
+        Int,
+        @convention(block) (UnsafePointer<CChar>?, UnsafePointer<CChar>?, UnsafeMutablePointer<Bool>?) -> Void
+    ) -> CInt
+
+    private static let forEachExportedSymbolFunction = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedMachOUtilsSymbols.$machoForEachExportedSymbol,
+        as: ForEachExportedSymbolFunction.self
+    )
+
+    /// Iterates over all exported symbols of an image.
+    /// - Parameters:
+    ///   - header: The mach header of the image to inspect.
+    ///   - mappedSize: Pass 0 when the image is already loaded by dyld.
+    ///   - body: Called for each exported symbol with the symbol name, attributes string,
+    ///           and a stop flag. Set `stop` to `true` to halt iteration.
+    /// - Returns: The C function's return code, or -1 if the symbol could not be resolved.
+    @discardableResult
+    public static func forEachExportedSymbol(
+        of header: UnsafePointer<mach_header>,
+        mappedSize: Int,
+        _ body: @escaping (_ symbolName: String, _ attributes: String, _ stop: inout Bool) -> Void
+    ) -> CInt {
+        guard let function = forEachExportedSymbolFunction else {
+            return -1
+        }
+        let block: @convention(block) (UnsafePointer<CChar>?, UnsafePointer<CChar>?, UnsafeMutablePointer<Bool>?) -> Void = { symbolName, attributes, stop in
+            guard let symbolName, let attributes, let stop else { return }
+            var localStop = stop.pointee
+            body(String(cString: symbolName), String(cString: attributes), &localStop)
+            stop.pointee = localStop
+        }
+        return function(header, mappedSize, block)
+    }
+}
 #endif

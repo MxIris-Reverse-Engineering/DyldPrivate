@@ -80,4 +80,25 @@ func forEachImportedSymbolResolvesAndInvokes() {
     // Either the sentinel -1 (function not resolved) or a non-negative OS return code.
     #expect(returnCode >= 0 || returnCode == -1)
 }
+
+@Test
+func forEachExportedSymbolResolvesAndInvokes() {
+    guard let header = knownImageHeader() else {
+        Issue.record("could not obtain a mach_header for testing")
+        return
+    }
+    var invocationCount = 0
+    let returnCode = MachOUtils.forEachExportedSymbol(
+        of: header,
+        mappedSize: 0
+    ) { symbolName, _, _ in
+        if !symbolName.isEmpty {
+            invocationCount += 1
+        }
+    }
+    #expect(returnCode >= 0 || returnCode == -1)
+    if returnCode != -1 {
+        #expect(invocationCount > 0)
+    }
+}
 #endif
