@@ -74,4 +74,30 @@ extension DyldIntrospection {
         return String(cString: cString)
     }
 }
+
+// MARK: - Function 25: dyld_image_get_file_path
+
+extension DyldIntrospection {
+    public typealias ImageGetFilePathFunction = @convention(c) (OpaquePointer?) -> UnsafePointer<CChar>?
+
+    private static let imageGetFilePathFunction = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedDyldIntrospectionSymbols.$imageGetFilePath,
+        as: ImageGetFilePathFunction.self
+    )
+
+    /// Returns the file path of the backing Mach-O file for the image.
+    ///
+    /// - Parameter image: A valid `DyldImageHandle`.
+    /// - Returns: The file path as a `String`, or nil if the symbol could not be resolved,
+    ///   the file has been deleted, or there is no Mach-O file backing the image.
+    public static func filePath(of image: DyldImageHandle) -> String? {
+        guard let function = imageGetFilePathFunction else {
+            return nil
+        }
+        guard let cString = function(image.rawValue) else {
+            return nil
+        }
+        return String(cString: cString)
+    }
+}
 #endif

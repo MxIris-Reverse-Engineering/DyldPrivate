@@ -427,4 +427,29 @@ func imageGetInstallnameResolves() {
     }
     #expect(foundInstallName, "imageGetInstallname must return a non-empty install name for at least one shared cache image")
 }
+
+// MARK: - Function 25: dyld_image_get_file_path
+
+@Test
+func imageGetFilePathResolves() {
+    guard let processHandle = DyldIntrospection.createProcessForCurrentTask() else {
+        Issue.record("Could not create process handle for imageGetFilePath test")
+        return
+    }
+    defer { processHandle.dispose() }
+    guard case .success(let snapshotHandle) = DyldIntrospection.createSnapshot(forProcess: processHandle) else {
+        Issue.record("Could not create snapshot handle for imageGetFilePath test")
+        return
+    }
+    defer { snapshotHandle.dispose() }
+
+    var foundFilePath = false
+    DyldIntrospection.forEachImage(in: snapshotHandle) { imageHandle in
+        guard !foundFilePath else { return }
+        if let filePath = DyldIntrospection.filePath(of: imageHandle), !filePath.isEmpty {
+            foundFilePath = true
+        }
+    }
+    #expect(foundFilePath, "imageGetFilePath must return a non-empty file path for at least one process image")
+}
 #endif
