@@ -12,4 +12,15 @@ func dyldRegisterForImageLoadsResolves() {
     #expect(probe != nil)
 }
 
+
+@Test
+func dyldRegisterForBulkImageLoadsResolves() {
+    // Resolution-only: calling this registers a persistent callback for the process lifetime.
+    let probe = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedDyldPrivRegistrationSymbols.$registerForBulkImageLoads,
+        as: DyldPriv.RegisterForBulkImageLoadsFunction.self
+    )
+    #expect(probe != nil)
+}
+
 #endif
