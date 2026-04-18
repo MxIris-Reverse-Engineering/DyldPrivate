@@ -139,4 +139,30 @@ func processSnapshotGetSharedCacheResolves() {
     let cacheHandle = DyldIntrospection.getSharedCache(of: snapshotHandle)
     #expect(cacheHandle != nil, "getSharedCache must return a non-nil handle for the current process snapshot")
 }
+
+// MARK: - Function 9: dyld_process_register_for_image_notifications
+
+@Test
+func processRegisterForImageNotificationsResolves() {
+    guard let processHandle = DyldIntrospection.createProcessForCurrentTask() else {
+        Issue.record("Could not create process handle for registerForImageNotifications test")
+        return
+    }
+    defer { processHandle.dispose() }
+
+    let notificationQueue = DispatchQueue(label: "com.dyldprivate.test.imagenotifications")
+    let result = DyldIntrospection.registerForImageNotifications(
+        on: processHandle,
+        queue: notificationQueue
+    ) { _, _ in }
+
+    switch result {
+    case .success(let registrationHandle):
+        #expect(registrationHandle != 0, "registerForImageNotifications must return a non-zero handle on success")
+        // unregisterForNotification will be implemented in the dyld_process_unregister_for_notification commit.
+        _ = registrationHandle
+    case .failure(let error):
+        Issue.record("registerForImageNotifications failed: \(error)")
+    }
+}
 #endif
