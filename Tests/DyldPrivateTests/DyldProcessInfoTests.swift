@@ -152,4 +152,36 @@ func processInfoForEachAotImageResolves() {
     #expect(invocationCount >= 0, "forEachAotImage resolved; zero invocations acceptable for non-AOT processes")
 }
 #endif
+
+// MARK: - Function 9: _dyld_process_info_for_each_segment
+
+@Test
+func processInfoForEachSegmentResolves() {
+    guard let handle = makeCurrentProcessHandle() else {
+        Issue.record("Could not create processInfo handle for forEachSegment test")
+        return
+    }
+    defer { handle.release() }
+
+    // First, grab the mach header address of the first loaded image.
+    var firstMachHeaderAddress: UInt64 = 0
+    DyldProcessInfo.forEachImage(in: handle) { machHeaderAddress, _, _ in
+        if firstMachHeaderAddress == 0 {
+            firstMachHeaderAddress = machHeaderAddress
+        }
+    }
+    guard firstMachHeaderAddress != 0 else {
+        Issue.record("Could not obtain a mach header address from forEachImage")
+        return
+    }
+
+    // Now iterate segments for that image.
+    var segmentCount = 0
+    DyldProcessInfo.forEachSegment(in: handle, machHeaderAddress: firstMachHeaderAddress) { segmentAddress, segmentSize, segmentName in
+        segmentCount += 1
+        #expect(segmentAddress != 0 || segmentName == "__PAGEZERO", "Segment address must be non-zero (except __PAGEZERO)")
+        #expect(!segmentName.isEmpty, "Segment name must not be empty")
+    }
+    #expect(segmentCount > 0, "forEachSegment must enumerate at least one segment")
+}
 #endif

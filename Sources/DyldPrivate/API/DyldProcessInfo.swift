@@ -278,4 +278,41 @@ extension DyldProcessInfo {
     }
 }
 #endif
+
+// MARK: - Function 9: _dyld_process_info_for_each_segment
+
+extension DyldProcessInfo {
+    public typealias ProcessInfoForEachSegmentFunction = @convention(c) (
+        UnsafeRawPointer?,
+        UInt64,
+        @convention(block) (UInt64, UInt64, UnsafePointer<CChar>?) -> Void
+    ) -> Void
+
+    private static let processInfoForEachSegmentFunction = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedDyldProcessInfoSymbols.$processInfoForEachSegment,
+        as: ProcessInfoForEachSegmentFunction.self
+    )
+
+    /// Iterates all segments in a specific image in the process represented by the given handle.
+    ///
+    /// - Parameters:
+    ///   - handle: A valid `DyldProcessInfoHandle`.
+    ///   - machHeaderAddress: The mach header address of the image to inspect (as returned by `forEachImage`).
+    ///   - body: Called for each segment with its address, size, and name.
+    public static func forEachSegment(
+        in handle: DyldProcessInfoHandle,
+        machHeaderAddress: UInt64,
+        _ body: @escaping (_ segmentAddress: UInt64, _ segmentSize: UInt64, _ segmentName: String) -> Void
+    ) {
+        guard let function = processInfoForEachSegmentFunction else {
+            return
+        }
+        let block: @convention(block) (UInt64, UInt64, UnsafePointer<CChar>?) -> Void = {
+            segmentAddress, segmentSize, segmentNamePointer in
+            let segmentName = segmentNamePointer.map { String(cString: $0) } ?? ""
+            body(segmentAddress, segmentSize, segmentName)
+        }
+        function(handle.rawValue, machHeaderAddress, block)
+    }
+}
 #endif
