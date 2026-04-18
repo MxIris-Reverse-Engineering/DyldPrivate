@@ -69,4 +69,44 @@ extension MachOUtils {
         return function(header, mappedSize, block)
     }
 }
+
+// MARK: - Function 3: macho_for_each_imported_symbol
+
+extension MachOUtils {
+    public typealias ForEachImportedSymbolFunction = @convention(c) (
+        UnsafePointer<mach_header>?,
+        Int,
+        @convention(block) (UnsafePointer<CChar>?, UnsafePointer<CChar>?, Bool, UnsafeMutablePointer<Bool>?) -> Void
+    ) -> CInt
+
+    private static let forEachImportedSymbolFunction = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedMachOUtilsSymbols.$machoForEachImportedSymbol,
+        as: ForEachImportedSymbolFunction.self
+    )
+
+    /// Iterates over all imported symbols of an image.
+    /// - Parameters:
+    ///   - header: The mach header of the image to inspect.
+    ///   - mappedSize: Pass 0 when the image is already loaded by dyld.
+    ///   - body: Called for each imported symbol with the symbol name, the library path
+    ///           it is imported from, whether it is a weak import, and a stop flag.
+    /// - Returns: The C function's return code, or -1 if the symbol could not be resolved.
+    @discardableResult
+    public static func forEachImportedSymbol(
+        of header: UnsafePointer<mach_header>,
+        mappedSize: Int,
+        _ body: @escaping (_ symbolName: String, _ libraryPath: String, _ weakImport: Bool, _ stop: inout Bool) -> Void
+    ) -> CInt {
+        guard let function = forEachImportedSymbolFunction else {
+            return -1
+        }
+        let block: @convention(block) (UnsafePointer<CChar>?, UnsafePointer<CChar>?, Bool, UnsafeMutablePointer<Bool>?) -> Void = { symbolName, libraryPath, weakImport, stop in
+            guard let symbolName, let libraryPath, let stop else { return }
+            var localStop = stop.pointee
+            body(String(cString: symbolName), String(cString: libraryPath), weakImport, &localStop)
+            stop.pointee = localStop
+        }
+        return function(header, mappedSize, block)
+    }
+}
 #endif

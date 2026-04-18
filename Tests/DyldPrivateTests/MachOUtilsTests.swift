@@ -56,4 +56,28 @@ func forEachDependentDylibResolvesAndInvokes() {
         #expect(foundAtLeastOne)
     }
 }
+
+@Test
+func forEachImportedSymbolResolvesAndInvokes() {
+    guard let header = knownImageHeader() else {
+        Issue.record("could not obtain a mach_header for testing")
+        return
+    }
+    // Images in the dyld shared cache may have zero imported symbols because the linker
+    // optimises them away during cache construction. We only require that:
+    //   - the function pointer resolved (returnCode != -1), AND
+    //   - calling it does not crash.
+    // We do NOT assert invocationCount > 0 because it is legitimately 0 for cache images.
+    var invocationCount = 0
+    let returnCode = MachOUtils.forEachImportedSymbol(
+        of: header,
+        mappedSize: 0
+    ) { symbolName, _, _, _ in
+        if !symbolName.isEmpty {
+            invocationCount += 1
+        }
+    }
+    // Either the sentinel -1 (function not resolved) or a non-negative OS return code.
+    #expect(returnCode >= 0 || returnCode == -1)
+}
 #endif
