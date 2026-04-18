@@ -293,4 +293,38 @@ extension DyldIntrospection {
         return uuidBuffer
     }
 }
+
+// MARK: - Function 22: dyld_shared_cache_for_each_image
+
+extension DyldIntrospection {
+    public typealias SharedCacheForEachImageFunction = @convention(c) (
+        OpaquePointer?,
+        @convention(block) (OpaquePointer?) -> Void
+    ) -> Void
+
+    private static let sharedCacheForEachImageFunction = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedDyldIntrospectionSymbols.$sharedCacheForEachImage,
+        as: SharedCacheForEachImageFunction.self
+    )
+
+    /// Iterates over every image in the shared cache.
+    ///
+    /// - Parameters:
+    ///   - cache: A valid `DyldSharedCacheHandle`.
+    ///   - body: Called for each image with a `DyldImageHandle`. The handle is valid only for the
+    ///     lifetime of the block unless the cache is pinned.
+    public static func forEachImage(
+        in cache: DyldSharedCacheHandle,
+        _ body: @escaping (_ image: DyldImageHandle) -> Void
+    ) {
+        guard let function = sharedCacheForEachImageFunction else {
+            return
+        }
+        let block: @convention(block) (OpaquePointer?) -> Void = { imagePointer in
+            guard let imagePointer else { return }
+            body(DyldImageHandle(rawValue: imagePointer))
+        }
+        function(cache.rawValue, block)
+    }
+}
 #endif

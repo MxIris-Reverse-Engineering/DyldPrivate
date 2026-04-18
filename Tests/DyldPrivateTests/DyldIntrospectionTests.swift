@@ -371,4 +371,17 @@ func sharedCacheCopyUUIDResolves() {
     let isAllZero = uuidBytes.allSatisfy { $0 == 0 }
     #expect(!isAllZero, "shared cache UUID must not be all-zero bytes")
 }
+
+// MARK: - Function 22: dyld_shared_cache_for_each_image
+
+@Test
+func sharedCacheForEachImageResolves() {
+    var imageCount = 0
+    DyldIntrospection.forEachInstalledSharedCache { cacheHandle in
+        DyldIntrospection.forEachImage(in: cacheHandle) { _ in
+            imageCount += 1
+        }
+    }
+    #expect(imageCount > 0, "forEachImage in shared cache must yield at least one image")
+}
 #endif
