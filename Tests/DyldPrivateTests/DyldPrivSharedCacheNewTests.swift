@@ -12,6 +12,13 @@ func getSharedCacheUUIDLiveInvoke() {
 
 
 @Test
+func sharedCacheRealPathLiveInvoke() {
+    // Pass a plausible dyld path; we accept a non-nil result or nil (not in cache).
+    let result = DyldPriv.sharedCacheRealPath(for: "/usr/lib/libobjc.A.dylib")
+    _ = result
+}
+
+@Test
 func sharedCacheIsLocallyBuiltLiveInvoke() {
     let result = DyldPriv.sharedCacheIsLocallyBuilt()
     // Accept either true or false; just must not crash.

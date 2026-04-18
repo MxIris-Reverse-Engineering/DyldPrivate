@@ -94,6 +94,31 @@ extension DyldPriv {
         guard let function = sharedCacheIsLocallyBuiltFunction else { return nil }
         return function()
     }
+
+    // MARK: - _dyld_shared_cache_real_path
+
+    public typealias SharedCacheRealPathFunction = @convention(c) (UnsafePointer<CChar>?) -> UnsafePointer<CChar>?
+
+    private static let sharedCacheRealPathFunction = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedDyldPrivSharedCacheSymbols.$sharedCacheRealPath,
+        as: SharedCacheRealPathFunction.self
+    )
+
+    /// Returns the canonical shared cache path for the given path.
+    ///
+    /// Similar to `_dyld_shared_cache_contains_path`, but instead of returning a bool,
+    /// returns the canonical (real) path for a given path if it is in the shared cache.
+    ///
+    /// - Parameter path: The path to look up in the shared cache.
+    /// - Returns: The canonical path string, `nil` if the path is not in the shared cache,
+    ///   or `nil` if the symbol could not be resolved.
+    public static func sharedCacheRealPath(for path: String) -> String? {
+        guard let function = sharedCacheRealPathFunction else { return nil }
+        return path.withCString { pathPointer in
+            guard let result = function(pathPointer) else { return nil }
+            return String(cString: result)
+        }
+    }
 }
 
 #endif
