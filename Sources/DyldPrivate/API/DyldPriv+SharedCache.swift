@@ -169,6 +169,40 @@ extension DyldPriv {
         guard let function = isMemoryImmutableFunction else { return nil }
         return function(pointer, size)
     }
+
+    // MARK: - dyld_shared_cache_iterate_text
+
+    public typealias SharedCacheIterateTextFunction = @convention(c) (
+        UnsafePointer<UInt8>?,
+        @convention(block) (UnsafePointer<dyld_shared_cache_dylib_text_info>?) -> Void
+    ) -> Int32
+
+    private static let sharedCacheIterateTextFunction = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedDyldPrivSharedCacheSymbols.$sharedCacheIterateText,
+        as: SharedCacheIterateTextFunction.self
+    )
+
+    /// Iterates over all dylibs in the dyld shared cache file matching the given UUID.
+    ///
+    /// - Parameters:
+    ///   - cacheUUID: The UUID of the shared cache to iterate.
+    ///   - body: Called for each dylib in the cache with a pointer to its text info.
+    /// - Returns: 0 on success, a non-zero error code on failure, or `nil` if the symbol
+    ///   could not be resolved.
+    @discardableResult
+    public static func sharedCacheIterateText(
+        uuid cacheUUID: inout uuid_t,
+        body: @escaping (UnsafePointer<dyld_shared_cache_dylib_text_info>) -> Void
+    ) -> Int32? {
+        guard let function = sharedCacheIterateTextFunction else { return nil }
+        let block: @convention(block) (UnsafePointer<dyld_shared_cache_dylib_text_info>?) -> Void = { infoPointer in
+            guard let infoPointer else { return }
+            body(infoPointer)
+        }
+        return withUnsafeBytes(of: &cacheUUID) { rawBuffer in
+            function(rawBuffer.baseAddress?.assumingMemoryBound(to: UInt8.self), block)
+        }
+    }
 }
 
 #endif

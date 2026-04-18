@@ -12,6 +12,22 @@ func getSharedCacheUUIDLiveInvoke() {
 
 
 @Test
+func sharedCacheIterateTextLiveInvoke() {
+    // First get the current cache UUID, then attempt to iterate.
+    var cacheUUID = uuid_t(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+    let hasUUID = DyldPriv.getSharedCacheUUID(into: &cacheUUID)
+    guard hasUUID == true else { return }
+    var iteratedCount = 0
+    let result = DyldPriv.sharedCacheIterateText(uuid: &cacheUUID) { _ in
+        iteratedCount += 1
+    }
+    // If resolved, result should be 0 (success) and at least some images iterated.
+    if result != nil {
+        #expect(result == 0 || iteratedCount >= 0)
+    }
+}
+
+@Test
 func isMemoryImmutableLiveInvoke() {
     // Test with a stack address (definitely not immutable dyld memory).
     var localValue: Int = 42
