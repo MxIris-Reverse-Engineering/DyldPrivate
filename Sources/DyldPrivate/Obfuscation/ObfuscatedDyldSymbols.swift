@@ -42,6 +42,17 @@ enum ObfuscatedDyldProcessInfoSymbols {
     }
 }
 
+enum ObfuscatedDyldPrivAtforkSymbols {
+    static #Obfuscate {
+        let atforkPrepare = "_dyld_atfork_prepare"
+        let atforkParent = "_dyld_atfork_parent"
+        let forkChild = "_dyld_fork_child"
+        let dlopenAtforkPrepare = "_dyld_dlopen_atfork_prepare"
+        let dlopenAtforkParent = "_dyld_dlopen_atfork_parent"
+        let dlopenAtforkChild = "_dyld_dlopen_atfork_child"
+    }
+}
+
 enum ObfuscatedDyldPrivPlatformSymbols {
     static #Obfuscate {
         let getActivePlatform = "dyld_get_active_platform"

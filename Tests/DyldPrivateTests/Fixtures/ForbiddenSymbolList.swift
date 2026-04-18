@@ -53,6 +53,13 @@ enum ForbiddenSymbolList {
         "dyld_shared_cache_is_mapped_private",
         "dyld_shared_cache_copy_uuid",
         "dyld_shared_cache_for_each_image",
+        // dyld_priv.h — atfork/fork
+        "_dyld_atfork_prepare",
+        "_dyld_atfork_parent",
+        "_dyld_fork_child",
+        "_dyld_dlopen_atfork_prepare",
+        "_dyld_dlopen_atfork_parent",
+        "_dyld_dlopen_atfork_child",
         // dyld_priv.h — platform
         "dyld_get_active_platform",
         "dyld_get_base_platform",
