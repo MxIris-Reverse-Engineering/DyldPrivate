@@ -37,10 +37,6 @@ enum DyldSymbolResolver {
     /// Unlike `resolve(symbol:as:)` which bitcasts the dlsym result to a function type,
     /// this helper binds the raw pointer returned by dlsym directly to `T` — appropriate
     /// when the symbol IS the variable (e.g. `NXArgc`, `dyldVersionString`).
-    /// Resolves a data symbol (global variable) by name and returns a typed pointer to its storage.
-    /// Unlike `resolve(symbol:as:)` which bitcasts the dlsym result to a function type,
-    /// this helper binds the raw pointer returned by dlsym directly to `T` — appropriate
-    /// when the symbol IS the variable (e.g. `NXArgc`, `dyldVersionString`).
     static func resolveData<DataType>(
         symbol name: String,
         as type: DataType.Type

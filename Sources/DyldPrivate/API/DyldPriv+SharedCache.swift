@@ -235,14 +235,17 @@ extension DyldPriv {
     ) -> Int32? {
         guard let function = sharedCacheFindIterateTextFunction else { return nil }
         // Build a NULL-terminated array of C strings for the extra search directories.
-        let cStringArray: [UnsafePointer<CChar>?] = extraSearchDirectories.map { directoryPath in
-            UnsafePointer(strdup(directoryPath))
-        } + [nil]
-        defer {
-            for cString in cStringArray.dropLast() {
-                cString.map { free(UnsafeMutableRawPointer(mutating: $0)) }
+        // strdup is checked for NULL so that memory exhaustion is handled safely.
+        var mutableCStrings: [UnsafeMutablePointer<CChar>?] = []
+        defer { mutableCStrings.forEach { if let pointer = $0 { free(pointer) } } }
+        for directoryPath in extraSearchDirectories {
+            guard let duplicatedString = directoryPath.withCString({ strdup($0) }) else {
+                return -1
             }
+            mutableCStrings.append(duplicatedString)
         }
+        // Build a read-only, NULL-terminated view for the C function.
+        let cStringArray: [UnsafePointer<CChar>?] = mutableCStrings.map { UnsafePointer($0) } + [nil]
         let block: @convention(block) (UnsafePointer<dyld_shared_cache_dylib_text_info>?) -> Void = { infoPointer in
             guard let infoPointer else { return }
             body(infoPointer)
