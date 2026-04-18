@@ -339,4 +339,17 @@ func sharedCacheGetMappedSizeResolves() {
     }
     #expect(mappedSize > 0, "mappedSize must be greater than zero for a valid shared cache")
 }
+
+// MARK: - Function 20: dyld_shared_cache_is_mapped_private
+
+@Test
+func sharedCacheIsMappedPrivateResolves() {
+    var capturedIsMappedPrivate: Bool?
+    DyldIntrospection.forEachInstalledSharedCache { cacheHandle in
+        if capturedIsMappedPrivate == nil {
+            capturedIsMappedPrivate = DyldIntrospection.isMappedPrivate(cacheHandle)
+        }
+    }
+    #expect(capturedIsMappedPrivate != nil, "isMappedPrivate must return a non-nil value for an installed shared cache")
+}
 #endif

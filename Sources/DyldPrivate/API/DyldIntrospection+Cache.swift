@@ -236,4 +236,27 @@ extension DyldIntrospection {
         return function(cache.rawValue)
     }
 }
+
+// MARK: - Function 20: dyld_shared_cache_is_mapped_private
+
+extension DyldIntrospection {
+    public typealias SharedCacheIsMappedPrivateFunction = @convention(c) (OpaquePointer?) -> Bool
+
+    private static let sharedCacheIsMappedPrivateFunction = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedDyldIntrospectionSymbols.$sharedCacheIsMappedPrivate,
+        as: SharedCacheIsMappedPrivateFunction.self
+    )
+
+    /// Returns whether the shared cache is using a private mapping.
+    ///
+    /// - Parameter cache: A valid `DyldSharedCacheHandle`.
+    /// - Returns: `true` if the cache uses a private mapping, `false` if it uses a shared system
+    ///   mapping, or nil if the symbol could not be resolved.
+    public static func isMappedPrivate(_ cache: DyldSharedCacheHandle) -> Bool? {
+        guard let function = sharedCacheIsMappedPrivateFunction else {
+            return nil
+        }
+        return function(cache.rawValue)
+    }
+}
 #endif
