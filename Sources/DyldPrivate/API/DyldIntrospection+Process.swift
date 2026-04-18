@@ -148,4 +148,40 @@ extension DyldIntrospection {
         return .success(DyldProcessSnapshotHandle(rawValue: rawPointer))
     }
 }
+
+// MARK: - Function 5: dyld_process_snapshot_create_from_data
+
+extension DyldIntrospection {
+    public typealias ProcessSnapshotCreateFromDataFunction = @convention(c) (
+        UnsafeMutableRawPointer?,
+        Int,
+        UnsafeMutableRawPointer?,
+        Int
+    ) -> OpaquePointer?
+
+    private static let processSnapshotCreateFromDataFunction = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedDyldIntrospectionSymbols.$processSnapshotCreateFromData,
+        as: ProcessSnapshotCreateFromDataFunction.self
+    )
+
+    /// Creates a process snapshot from a serialized data blob.
+    ///
+    /// - Parameters:
+    ///   - buffer: A pointer to the serialized process info buffer.
+    ///   - size: The size of the buffer in bytes.
+    /// - Returns: A `DyldProcessSnapshotHandle` if successful, or nil if the symbol could not be
+    ///   resolved or the call returned NULL.
+    public static func createSnapshot(
+        fromBuffer buffer: UnsafeMutableRawPointer,
+        size: Int
+    ) -> DyldProcessSnapshotHandle? {
+        guard let function = processSnapshotCreateFromDataFunction else {
+            return nil
+        }
+        guard let rawPointer = function(buffer, size, nil, 0) else {
+            return nil
+        }
+        return DyldProcessSnapshotHandle(rawValue: rawPointer)
+    }
+}
 #endif
