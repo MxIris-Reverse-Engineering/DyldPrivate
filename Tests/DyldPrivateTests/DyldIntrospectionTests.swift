@@ -352,4 +352,23 @@ func sharedCacheIsMappedPrivateResolves() {
     }
     #expect(capturedIsMappedPrivate != nil, "isMappedPrivate must return a non-nil value for an installed shared cache")
 }
+
+// MARK: - Function 21: dyld_shared_cache_copy_uuid
+
+@Test
+func sharedCacheCopyUUIDResolves() {
+    var capturedUUID: uuid_t?
+    DyldIntrospection.forEachInstalledSharedCache { cacheHandle in
+        if capturedUUID == nil {
+            capturedUUID = DyldIntrospection.copyUUID(of: cacheHandle)
+        }
+    }
+    guard let uuidValue = capturedUUID else {
+        Issue.record("copyUUID returned nil for installed shared cache")
+        return
+    }
+    let uuidBytes = withUnsafeBytes(of: uuidValue) { Array($0) }
+    let isAllZero = uuidBytes.allSatisfy { $0 == 0 }
+    #expect(!isAllZero, "shared cache UUID must not be all-zero bytes")
+}
 #endif

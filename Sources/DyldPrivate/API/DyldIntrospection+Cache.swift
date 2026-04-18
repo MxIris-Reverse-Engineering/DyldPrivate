@@ -259,4 +259,38 @@ extension DyldIntrospection {
         return function(cache.rawValue)
     }
 }
+
+// MARK: - Function 21: dyld_shared_cache_copy_uuid
+
+extension DyldIntrospection {
+    // uuid_t is a Swift tuple, which is not Objective-C representable and cannot appear directly
+    // in @convention(c) function pointer types. The C function takes a uuid_t* which is a pointer
+    // to 16 bytes, so we use UnsafeMutablePointer<UInt8> (same layout, passes as 16-byte buffer).
+    public typealias SharedCacheCopyUUIDFunction = @convention(c) (
+        OpaquePointer?,
+        UnsafeMutablePointer<UInt8>?
+    ) -> Void
+
+    private static let sharedCacheCopyUUIDFunction = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedDyldIntrospectionSymbols.$sharedCacheCopyUUID,
+        as: SharedCacheCopyUUIDFunction.self
+    )
+
+    /// Copies the UUID of the shared cache.
+    ///
+    /// - Parameter cache: A valid `DyldSharedCacheHandle`.
+    /// - Returns: The `uuid_t` of the shared cache, or nil if the symbol could not be resolved.
+    public static func copyUUID(of cache: DyldSharedCacheHandle) -> uuid_t? {
+        guard let function = sharedCacheCopyUUIDFunction else {
+            return nil
+        }
+        var uuidBuffer = uuid_t(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        withUnsafeMutablePointer(to: &uuidBuffer) { uuidPointer in
+            uuidPointer.withMemoryRebound(to: UInt8.self, capacity: 16) { bytePointer in
+                function(cache.rawValue, bytePointer)
+            }
+        }
+        return uuidBuffer
+    }
+}
 #endif
