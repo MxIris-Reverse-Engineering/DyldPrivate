@@ -142,4 +142,30 @@ extension DyldProcessInfo {
         return stateInfo
     }
 }
+
+// MARK: - Function 5: _dyld_process_info_get_cache
+
+extension DyldProcessInfo {
+    public typealias ProcessInfoGetCacheFunction = @convention(c) (
+        UnsafeRawPointer?,
+        UnsafeMutablePointer<dyld_process_cache_info>?
+    ) -> Void
+
+    private static let processInfoGetCacheFunction = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedDyldProcessInfoSymbols.$processInfoGetCache,
+        as: ProcessInfoGetCacheFunction.self
+    )
+
+    /// Returns dyld shared cache information for the given handle.
+    /// - Parameter handle: A valid `DyldProcessInfoHandle`.
+    /// - Returns: A `dyld_process_cache_info` struct, or nil if the symbol could not be resolved.
+    public static func cacheInfo(of handle: DyldProcessInfoHandle) -> dyld_process_cache_info? {
+        guard let function = processInfoGetCacheFunction else {
+            return nil
+        }
+        var cacheInfo = dyld_process_cache_info()
+        function(handle.rawValue, &cacheInfo)
+        return cacheInfo
+    }
+}
 #endif

@@ -79,4 +79,23 @@ func processInfoGetStateResolves() {
         #expect(stateInfo.imageCount > 0, "Running process must have at least one loaded image")
     }
 }
+
+// MARK: - Function 5: _dyld_process_info_get_cache
+
+@Test
+func processInfoGetCacheResolves() {
+    guard let handle = makeCurrentProcessHandle() else {
+        Issue.record("Could not create processInfo handle for cache test")
+        return
+    }
+    defer { handle.release() }
+    let cacheInfo = DyldProcessInfo.cacheInfo(of: handle)
+    #expect(cacheInfo != nil, "processInfoGetCache must resolve")
+    // On a normal macOS/iOS device, noCache is false and cacheBaseAddress is non-zero.
+    if let cacheInfo {
+        if !cacheInfo.noCache {
+            #expect(cacheInfo.cacheBaseAddress != 0, "Cache base address must be non-zero when cache is in use")
+        }
+    }
+}
 #endif
