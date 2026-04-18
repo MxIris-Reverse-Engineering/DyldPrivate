@@ -5,6 +5,7 @@ extension DyldPriv {
     public typealias GetActivePlatformFunction = @convention(c) () -> dyld_platform_t
     public typealias GetBasePlatformFunction = @convention(c) (dyld_platform_t) -> dyld_platform_t
     public typealias IsSimulatorPlatformFunction = @convention(c) (dyld_platform_t) -> Bool
+    public typealias SdkAtLeastFunction = @convention(c) (UnsafePointer<mach_header>?, dyld_build_version_t) -> Bool
 
     private static let getActivePlatformFunction = DyldSymbolResolver.resolve(
         symbol: ObfuscatedDyldPrivPlatformSymbols.$getActivePlatform,
@@ -19,6 +20,11 @@ extension DyldPriv {
     private static let isSimulatorPlatformFunction = DyldSymbolResolver.resolve(
         symbol: ObfuscatedDyldPrivPlatformSymbols.$isSimulatorPlatform,
         as: IsSimulatorPlatformFunction.self
+    )
+
+    private static let sdkAtLeastFunction = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedDyldPrivPlatformSymbols.$sdkAtLeast,
+        as: SdkAtLeastFunction.self
     )
 
     /// Returns the active platform identifier for the current process.
@@ -47,6 +53,19 @@ extension DyldPriv {
     public static func isSimulatorPlatform(_ platform: dyld_platform_t) -> Bool? {
         guard let function = isSimulatorPlatformFunction else { return nil }
         return function(platform)
+    }
+
+    /// Returns whether the SDK version linked against the given Mach-O image is
+    /// at least the version specified in `buildVersion`.
+    ///
+    /// - Parameters:
+    ///   - header: A pointer to a `mach_header` for the image to query.
+    ///   - buildVersion: The minimum platform/version pair to test against.
+    /// - Returns: `true` if the image's SDK is at or above `buildVersion`, `false` if not,
+    ///   or `nil` if the symbol could not be resolved.
+    public static func sdkAtLeast(header: UnsafePointer<mach_header>, buildVersion: dyld_build_version_t) -> Bool? {
+        guard let function = sdkAtLeastFunction else { return nil }
+        return function(header, buildVersion)
     }
 }
 #endif

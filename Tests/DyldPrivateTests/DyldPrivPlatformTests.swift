@@ -51,4 +51,22 @@ func isSimulatorPlatformResolves() {
     let isSimulatorResult = DyldPriv.isSimulatorPlatform(activePlatform)
     #expect(isSimulatorResult != nil)
 }
+
+@Test
+func sdkAtLeastResolves() {
+    // Live-invoke: use a well-known loaded image header and a version of 0 (always satisfied).
+    guard let machHeader = knownImageHeader(),
+          let activePlatform = DyldPriv.getActivePlatform()
+    else {
+        Issue.record("could not obtain mach_header or active platform for testing")
+        return
+    }
+    // A version of 0 should be satisfied by any image on any platform.
+    let zeroVersion = dyld_build_version_t(platform: activePlatform, version: 0)
+    let result = DyldPriv.sdkAtLeast(header: machHeader, buildVersion: zeroVersion)
+    #expect(result != nil)
+    if let result {
+        #expect(result == true)
+    }
+}
 #endif
