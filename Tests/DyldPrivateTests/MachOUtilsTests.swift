@@ -115,4 +115,19 @@ func forEachDefinedRpathResolvesAndInvokes() {
     ) { _, _ in }
     #expect(returnCode >= 0 || returnCode == -1)
 }
+
+@Test
+func sourceVersionResolvesAndInvokes() {
+    guard let header = knownImageHeader() else {
+        Issue.record("could not obtain a mach_header for testing")
+        return
+    }
+    // The function either returns a version (if LC_SOURCE_VERSION is present) or nil.
+    // Both outcomes are valid; we only require that calling it does not crash.
+    let version = MachOUtils.sourceVersion(of: header)
+    // If a version was returned, it must be positive.
+    if let version {
+        #expect(version > 0)
+    }
+}
 #endif

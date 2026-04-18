@@ -189,4 +189,30 @@ extension MachOUtils {
         return function(header, mappedSize, block)
     }
 }
+
+// MARK: - Function 6: macho_source_version
+
+extension MachOUtils {
+    public typealias SourceVersionFunction = @convention(c) (UnsafePointer<mach_header>?, UnsafeMutablePointer<UInt64>?) -> Bool
+
+    private static let sourceVersionFunction = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedMachOUtilsSymbols.$machoSourceVersion,
+        as: SourceVersionFunction.self
+    )
+
+    /// Returns the source version of an image if it has an LC_SOURCE_VERSION load command.
+    /// - Parameter header: The mach header of the image to inspect.
+    /// - Returns: The packed source version as a `UInt64`, or nil if the image has no
+    ///            LC_SOURCE_VERSION or the underlying function could not be resolved.
+    public static func sourceVersion(of header: UnsafePointer<mach_header>) -> UInt64? {
+        guard let function = sourceVersionFunction else {
+            return nil
+        }
+        var version: UInt64 = 0
+        guard function(header, &version) else {
+            return nil
+        }
+        return version
+    }
+}
 #endif
