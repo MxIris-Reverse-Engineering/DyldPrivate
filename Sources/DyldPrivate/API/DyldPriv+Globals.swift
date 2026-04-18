@@ -30,5 +30,21 @@ extension DyldPriv {
         }
         return UnsafePointer(triplePointer)
     }
+
+    /// Returns the process environment variable array (`envp`).
+    ///
+    /// `environ` is the POSIX libc `char**` variable holding the environment array.
+    /// `dlsym` returns the address of the `char**` variable (i.e. `char***`);
+    /// this property dereferences once to expose the `char**` environ pointer.
+    /// The array is null-terminated; each entry is a `"KEY=VALUE"` C string.
+    public static var environ: UnsafePointer<UnsafeMutablePointer<CChar>?>? {
+        guard let triplePointer = DyldSymbolResolver.resolveData(
+            symbol: ObfuscatedDyldPrivGlobalsSymbols.$environ,
+            as: UnsafeMutablePointer<CChar>?.self
+        ) else {
+            return nil
+        }
+        return UnsafePointer(triplePointer)
+    }
 }
 #endif

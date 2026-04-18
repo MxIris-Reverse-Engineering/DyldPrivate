@@ -22,4 +22,13 @@ func nxArgvResolves() {
         #expect(argumentVector[0] != nil)
     }
 }
+
+@Test
+func environResolves() {
+    // Live-invoke: environ is a POSIX global; it should be non-nil and
+    // the array should be null-terminated (first entry may be non-nil or nil depending
+    // on whether any env vars are set, but the pointer itself must not be nil).
+    let environmentVector = DyldPriv.environ
+    #expect(environmentVector != nil)
+}
 #endif
