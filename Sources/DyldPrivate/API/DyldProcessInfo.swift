@@ -409,4 +409,37 @@ extension DyldProcessInfo {
         return .success(.init(rawValue: rawHandle))
     }
 }
+
+// MARK: - Function 12: _dyld_process_info_notify_main
+
+extension DyldProcessInfo {
+    public typealias ProcessInfoNotifyMainFunction = @convention(c) (
+        UnsafeRawPointer?,
+        @convention(block) () -> Void
+    ) -> Void
+
+    private static let processInfoNotifyMainFunction = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedDyldProcessInfoSymbols.$processInfoNotifyMain,
+        as: ProcessInfoNotifyMainFunction.self
+    )
+
+    /// Adds a block to call right before main() is entered in the target process.
+    /// Does nothing if the target process is already in main().
+    ///
+    /// - Parameters:
+    ///   - handle: A valid `DyldProcessInfoNotifyHandle`.
+    ///   - notifyMain: The block to call before the process enters main().
+    public static func notifyMain(
+        handle: DyldProcessInfoNotifyHandle,
+        _ notifyMain: @escaping () -> Void
+    ) {
+        guard let function = processInfoNotifyMainFunction else {
+            return
+        }
+        let notifyMainBlock: @convention(block) () -> Void = {
+            notifyMain()
+        }
+        function(handle.rawValue, notifyMainBlock)
+    }
+}
 #endif

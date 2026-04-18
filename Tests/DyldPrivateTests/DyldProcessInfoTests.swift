@@ -216,4 +216,16 @@ func processInfoNotifyFunctionResolves() {
     )
     #expect(resolvedFunction != nil, "The _dyld_process_info_notify symbol must be resolvable via obfuscated lookup")
 }
+
+// MARK: - Function 12: _dyld_process_info_notify_main (resolution check only)
+
+@Test
+func processInfoNotifyMainFunctionResolves() {
+    typealias NotifyMainProbe = @convention(c) () -> Void
+    let resolvedFunction = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedDyldProcessInfoSymbols.$processInfoNotifyMain,
+        as: NotifyMainProbe.self
+    )
+    #expect(resolvedFunction != nil, "The _dyld_process_info_notify_main symbol must be resolvable via obfuscated lookup")
+}
 #endif
