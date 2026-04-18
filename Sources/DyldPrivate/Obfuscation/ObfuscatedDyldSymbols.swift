@@ -88,6 +88,29 @@ enum ObfuscatedDyldPrivRuntimeSymbols {
     }
 }
 
+enum ObfuscatedDyldPrivVersionSymbols {
+    static #Obfuscate {
+        let programSdkAtLeast = "dyld_program_sdk_at_least"
+        let programMinosAtLeast = "dyld_program_minos_at_least"
+        let getProgramSdkVersionToken = "dyld_get_program_sdk_version_token"
+        let getProgramMinosVersionToken = "dyld_get_program_minos_version_token"
+        let versionTokenGetPlatform = "dyld_version_token_get_platform"
+        let versionTokenAtLeast = "dyld_version_token_at_least"
+        let getImageVersions = "dyld_get_image_versions"
+        let getSdkVersion = "dyld_get_sdk_version"
+        let getProgramSdkVersion = "dyld_get_program_sdk_version"
+    }
+}
+
+#if os(watchOS)
+enum ObfuscatedDyldPrivVersionWatchOSSymbols {
+    static #Obfuscate {
+        let getProgramSdkWatchOSVersion = "dyld_get_program_sdk_watch_os_version"
+        let getProgramMinWatchOSVersion = "dyld_get_program_min_watch_os_version"
+    }
+}
+#endif
+
 enum ObfuscatedDyldPrivMinOSVersionSymbols {
     static #Obfuscate {
         let getMinOSVersion = "dyld_get_min_os_version"

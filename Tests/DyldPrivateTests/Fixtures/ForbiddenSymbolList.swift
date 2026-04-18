@@ -79,6 +79,18 @@ enum ForbiddenSymbolList {
         "_dyld_has_fix_for_radar",
         // dyld_priv.h — runtime launch
         "_dyld_launch_mode",
+        // dyld_priv.h — program version
+        "dyld_program_sdk_at_least",
+        "dyld_program_minos_at_least",
+        "dyld_get_program_sdk_version_token",
+        "dyld_get_program_minos_version_token",
+        "dyld_version_token_get_platform",
+        "dyld_version_token_at_least",
+        "dyld_get_image_versions",
+        "dyld_get_sdk_version",
+        "dyld_get_program_sdk_version",
+        "dyld_get_program_sdk_watch_os_version",
+        "dyld_get_program_min_watch_os_version",
         // dyld_priv.h — min OS version
         "dyld_get_min_os_version",
         "dyld_get_program_min_os_version",
