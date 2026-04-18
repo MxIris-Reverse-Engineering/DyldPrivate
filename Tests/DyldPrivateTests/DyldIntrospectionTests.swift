@@ -40,4 +40,23 @@ func processDisposeResolves() {
     processHandle.dispose()
     #expect(Bool(true), "processDispose did not crash")
 }
+
+// MARK: - Function 4: dyld_process_snapshot_create_for_process
+
+@Test
+func processSnapshotCreateForProcessResolves() {
+    guard let processHandle = DyldIntrospection.createProcessForCurrentTask() else {
+        Issue.record("Could not create process handle for snapshot test")
+        return
+    }
+    defer { processHandle.dispose() }
+
+    let result = DyldIntrospection.createSnapshot(forProcess: processHandle)
+    switch result {
+    case .success:
+        #expect(Bool(true), "createSnapshot(forProcess:) resolved and returned a valid handle")
+    case .failure(let error):
+        Issue.record("createSnapshot(forProcess:) failed: \(error)")
+    }
+}
 #endif

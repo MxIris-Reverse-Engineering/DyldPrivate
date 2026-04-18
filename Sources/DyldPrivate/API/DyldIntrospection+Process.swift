@@ -113,4 +113,39 @@ extension DyldProcessHandle {
         DyldIntrospection.processDisposeFunction?(rawValue)
     }
 }
+
+// MARK: - Function 4: dyld_process_snapshot_create_for_process
+
+extension DyldIntrospection {
+    public typealias ProcessSnapshotCreateForProcessFunction = @convention(c) (
+        OpaquePointer?,
+        UnsafeMutablePointer<kern_return_t>?
+    ) -> OpaquePointer?
+
+    private static let processSnapshotCreateForProcessFunction = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedDyldIntrospectionSymbols.$processSnapshotCreateForProcess,
+        as: ProcessSnapshotCreateForProcessFunction.self
+    )
+
+    /// Creates a snapshot of the process that can be used for introspecting loaded libraries.
+    ///
+    /// - Parameter process: A valid `DyldProcessHandle`.
+    /// - Returns: `.success` with a `DyldProcessSnapshotHandle`, or `.failure` with a `DyldError`.
+    public static func createSnapshot(
+        forProcess process: DyldProcessHandle
+    ) -> Result<DyldProcessSnapshotHandle, DyldError> {
+        guard let function = processSnapshotCreateForProcessFunction else {
+            return .failure(.symbolUnavailable(ObfuscatedDyldIntrospectionSymbols.$processSnapshotCreateForProcess))
+        }
+        var machError: kern_return_t = KERN_SUCCESS
+        let rawPointer = withUnsafeMutablePointer(to: &machError) { function(process.rawValue, $0) }
+        if machError != KERN_SUCCESS {
+            return .failure(.mach(machError))
+        }
+        guard let rawPointer else {
+            return .failure(.symbolUnavailable(ObfuscatedDyldIntrospectionSymbols.$processSnapshotCreateForProcess))
+        }
+        return .success(DyldProcessSnapshotHandle(rawValue: rawPointer))
+    }
+}
 #endif
