@@ -52,4 +52,14 @@ func dlopenAtforkParentResolves() {
     )
     #expect(probeFunction != nil)
 }
+
+@Test
+func dlopenAtforkChildResolves() {
+    // Resolution-only: do NOT invoke — this function manipulates dlopen/fork state.
+    let probeFunction = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedDyldPrivAtforkSymbols.$dlopenAtforkChild,
+        as: DyldPriv.DlopenAtforkChildFunction.self
+    )
+    #expect(probeFunction != nil)
+}
 #endif
