@@ -42,6 +42,15 @@ enum ObfuscatedDyldProcessInfoSymbols {
     }
 }
 
+enum ObfuscatedDyldPrivProcessStatusSymbols {
+    static #Obfuscate {
+        let sharedCacheSomeImageOverridden = "dyld_shared_cache_some_image_overridden"
+        let processIsRestricted = "dyld_process_is_restricted"
+        let hasInsertedOrInterposingLibraries = "dyld_has_inserted_or_interposing_libraries"
+        let hasFixForRadar = "_dyld_has_fix_for_radar"
+    }
+}
+
 enum ObfuscatedDyldPrivRuntimeSymbols {
     static #Obfuscate {
         let launchMode = "_dyld_launch_mode"
