@@ -75,8 +75,27 @@ func processSnapshotCreateFromDataResolves() {
     defer { processHandle.dispose() }
     // A successful create confirms the introspection library loaded, meaning
     // dyld_process_snapshot_create_from_data also resolves (same library).
-    // Note: snapshotHandle.dispose() will be available after the dyld_process_snapshot_dispose commit.
-    if case .success(_) = DyldIntrospection.createSnapshot(forProcess: processHandle) { }
+    if case .success(let snapshotHandle) = DyldIntrospection.createSnapshot(forProcess: processHandle) {
+        snapshotHandle.dispose()
+    }
     #expect(Bool(true), "processSnapshotCreateFromData symbol is present (verified via library load)")
+}
+
+// MARK: - Function 6: dyld_process_snapshot_dispose
+
+@Test
+func processSnapshotDisposeResolves() {
+    guard let processHandle = DyldIntrospection.createProcessForCurrentTask() else {
+        Issue.record("Could not create process handle for snapshot dispose test")
+        return
+    }
+    defer { processHandle.dispose() }
+    guard case .success(let snapshotHandle) = DyldIntrospection.createSnapshot(forProcess: processHandle) else {
+        Issue.record("Could not create snapshot handle for dispose test")
+        return
+    }
+    // This is the function under test — it must not crash.
+    snapshotHandle.dispose()
+    #expect(Bool(true), "processSnapshotDispose did not crash")
 }
 #endif
