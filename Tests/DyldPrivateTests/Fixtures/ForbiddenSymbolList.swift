@@ -7,6 +7,13 @@ enum ForbiddenSymbolList {
         "dyld_image_path_containing_address",
         "/usr/lib/system/libdyld.dylib",
         "libdyld.dylib",
+        "macho_dylib_install_name",
+        "macho_for_each_dependent_dylib",
+        "macho_for_each_imported_symbol",
+        "macho_for_each_exported_symbol",
+        "macho_for_each_defined_rpath",
+        "macho_source_version",
+        "macho_for_each_runnable_arch_name",
     ]
 }
 #endif
