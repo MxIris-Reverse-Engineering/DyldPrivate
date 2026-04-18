@@ -54,4 +54,57 @@ extension DyldIntrospection {
         return .success(registrationHandle)
     }
 }
+
+// MARK: - Function 10: dyld_process_register_for_event_notification
+
+extension DyldIntrospection {
+    public typealias ProcessRegisterForEventNotificationFunction = @convention(c) (
+        OpaquePointer?,                                          // dyld_process_t
+        UnsafeMutablePointer<kern_return_t>?,
+        UInt32,                                                  // event type
+        OpaquePointer?,                                          // dispatch_queue_t as opaque
+        @convention(block) () -> Void
+    ) -> UInt32
+
+    private static let processRegisterForEventNotificationFunction = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedDyldIntrospectionSymbols.$processRegisterForEventNotification,
+        as: ProcessRegisterForEventNotificationFunction.self
+    )
+
+    /// Registers for a specific dyld event notification.
+    ///
+    /// Common event values (defined in dyld_introspection.h):
+    /// - `DYLD_REMOTE_EVENT_MAIN` (1): called immediately before main() executes.
+    /// - `DYLD_REMOTE_EVENT_BEFORE_INITIALIZERS` (2): called before running initializers.
+    ///
+    /// - Parameters:
+    ///   - process: A valid `DyldProcessHandle`.
+    ///   - event: The event type to listen for.
+    ///   - queue: The dispatch queue on which to invoke the notification block.
+    ///   - notify: Called when the event fires.
+    /// - Returns: `.success` with a non-zero registration handle, or `.failure` with a `DyldError`.
+    public static func registerForEventNotification(
+        on process: DyldProcessHandle,
+        event: UInt32,
+        queue: DispatchQueue,
+        _ notify: @escaping () -> Void
+    ) -> Result<UInt32, DyldError> {
+        guard let function = processRegisterForEventNotificationFunction else {
+            return .failure(.symbolUnavailable(ObfuscatedDyldIntrospectionSymbols.$processRegisterForEventNotification))
+        }
+        var machError: kern_return_t = KERN_SUCCESS
+        let block: @convention(block) () -> Void = { notify() }
+        let queueOpaque = OpaquePointer(Unmanaged.passUnretained(queue).toOpaque())
+        let registrationHandle = withUnsafeMutablePointer(to: &machError) {
+            function(process.rawValue, $0, event, queueOpaque, block)
+        }
+        if machError != KERN_SUCCESS {
+            return .failure(.mach(machError))
+        }
+        if registrationHandle == 0 {
+            return .failure(.symbolUnavailable(ObfuscatedDyldIntrospectionSymbols.$processRegisterForEventNotification))
+        }
+        return .success(registrationHandle)
+    }
+}
 #endif

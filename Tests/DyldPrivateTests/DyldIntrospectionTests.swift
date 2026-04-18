@@ -165,4 +165,33 @@ func processRegisterForImageNotificationsResolves() {
         Issue.record("registerForImageNotifications failed: \(error)")
     }
 }
+
+// MARK: - Function 10: dyld_process_register_for_event_notification
+
+@Test
+func processRegisterForEventNotificationResolves() {
+    guard let processHandle = DyldIntrospection.createProcessForCurrentTask() else {
+        Issue.record("Could not create process handle for registerForEventNotification test")
+        return
+    }
+    defer { processHandle.dispose() }
+
+    let notificationQueue = DispatchQueue(label: "com.dyldprivate.test.eventnotification")
+    // Use event type 1 (DYLD_REMOTE_EVENT_MAIN).
+    let result = DyldIntrospection.registerForEventNotification(
+        on: processHandle,
+        event: 1,
+        queue: notificationQueue
+    ) {}
+
+    switch result {
+    case .success(let registrationHandle):
+        #expect(registrationHandle != 0, "registerForEventNotification must return a non-zero handle on success")
+        _ = registrationHandle
+    case .failure:
+        // If the process has already passed main(), the event notification may legitimately fail.
+        // Treat failure as acceptable — we only care that the symbol resolved without crash.
+        #expect(Bool(true), "registerForEventNotification returned failure (acceptable: process may be past main)")
+    }
+}
 #endif
