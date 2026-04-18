@@ -88,6 +88,13 @@ enum ObfuscatedDyldPrivRuntimeSymbols {
     }
 }
 
+enum ObfuscatedDyldPrivMinOSVersionSymbols {
+    static #Obfuscate {
+        let getMinOSVersion = "dyld_get_min_os_version"
+        let getProgramMinOSVersion = "dyld_get_program_min_os_version"
+    }
+}
+
 enum ObfuscatedDyldIntrospectionSymbols {
     static #Obfuscate {
         // Process lifecycle

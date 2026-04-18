@@ -79,6 +79,9 @@ enum ForbiddenSymbolList {
         "_dyld_has_fix_for_radar",
         // dyld_priv.h — runtime launch
         "_dyld_launch_mode",
+        // dyld_priv.h — min OS version
+        "dyld_get_min_os_version",
+        "dyld_get_program_min_os_version",
         // dyld_introspection.h — image accessors
         "dyld_image_copy_uuid",
         "dyld_image_get_installname",
