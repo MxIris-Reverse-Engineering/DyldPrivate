@@ -192,4 +192,26 @@ extension DyldIntrospection {
         function(cache.rawValue, block)
     }
 }
+
+// MARK: - Function 18: dyld_shared_cache_get_base_address
+
+extension DyldIntrospection {
+    public typealias SharedCacheGetBaseAddressFunction = @convention(c) (OpaquePointer?) -> UInt64
+
+    private static let sharedCacheGetBaseAddressFunction = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedDyldIntrospectionSymbols.$sharedCacheGetBaseAddress,
+        as: SharedCacheGetBaseAddressFunction.self
+    )
+
+    /// Returns the base address of the shared cache.
+    ///
+    /// - Parameter cache: A valid `DyldSharedCacheHandle`.
+    /// - Returns: The base address as a `UInt64`, or nil if the symbol could not be resolved.
+    public static func baseAddress(of cache: DyldSharedCacheHandle) -> UInt64? {
+        guard let function = sharedCacheGetBaseAddressFunction else {
+            return nil
+        }
+        return function(cache.rawValue)
+    }
+}
 #endif

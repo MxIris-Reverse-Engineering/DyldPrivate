@@ -309,4 +309,17 @@ func sharedCacheForEachFileResolves() {
     }
     #expect(fileCount > 0, "forEachFile must yield at least one file path for the installed shared cache")
 }
+
+// MARK: - Function 18: dyld_shared_cache_get_base_address
+
+@Test
+func sharedCacheGetBaseAddressResolves() {
+    var capturedBaseAddress: UInt64?
+    DyldIntrospection.forEachInstalledSharedCache { cacheHandle in
+        if capturedBaseAddress == nil {
+            capturedBaseAddress = DyldIntrospection.baseAddress(of: cacheHandle)
+        }
+    }
+    #expect(capturedBaseAddress != nil, "baseAddress must return a non-nil value for an installed shared cache")
+}
 #endif
