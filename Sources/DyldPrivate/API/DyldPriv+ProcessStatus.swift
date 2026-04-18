@@ -5,6 +5,7 @@ extension DyldPriv {
     public typealias SharedCacheSomeImageOverriddenFunction = @convention(c) () -> Bool
     public typealias ProcessIsRestrictedFunction = @convention(c) () -> Bool
     public typealias HasInsertedOrInterposingLibrariesFunction = @convention(c) () -> Bool
+    public typealias HasFixForRadarFunction = @convention(c) (UnsafePointer<CChar>?) -> Bool
 
     private static let sharedCacheSomeImageOverriddenFunction = DyldSymbolResolver.resolve(
         symbol: ObfuscatedDyldPrivProcessStatusSymbols.$sharedCacheSomeImageOverridden,
@@ -19,6 +20,11 @@ extension DyldPriv {
     private static let hasInsertedOrInterposingLibrariesFunction = DyldSymbolResolver.resolve(
         symbol: ObfuscatedDyldPrivProcessStatusSymbols.$hasInsertedOrInterposingLibraries,
         as: HasInsertedOrInterposingLibrariesFunction.self
+    )
+
+    private static let hasFixForRadarFunction = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedDyldPrivProcessStatusSymbols.$hasFixForRadar,
+        as: HasFixForRadarFunction.self
     )
 
     /// Returns whether any image in the dyld shared cache has been overridden
@@ -40,6 +46,16 @@ extension DyldPriv {
     public static func hasInsertedOrInterposingLibraries() -> Bool? {
         guard let function = hasInsertedOrInterposingLibrariesFunction else { return nil }
         return function()
+    }
+
+    /// Returns whether dyld has a fix applied for the given radar identifier.
+    ///
+    /// - Parameter radarIdentifier: A radar identifier string such as `"rdar://12345678"`.
+    /// - Returns: `true` if dyld contains a fix for the specified radar, `false` if not,
+    ///   or `nil` if the symbol could not be resolved.
+    public static func hasFixForRadar(_ radarIdentifier: String) -> Bool? {
+        guard let function = hasFixForRadarFunction else { return nil }
+        return radarIdentifier.withCString { function($0) }
     }
 }
 #endif

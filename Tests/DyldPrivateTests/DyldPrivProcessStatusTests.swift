@@ -22,4 +22,11 @@ func hasInsertedOrInterposingLibrariesResolves() {
     let result = DyldPriv.hasInsertedOrInterposingLibraries()
     #expect(result != nil)
 }
+
+@Test
+func hasFixForRadarResolves() {
+    // Live-invoke with a synthetic radar ID; both true and false are valid results.
+    let result = DyldPriv.hasFixForRadar("rdar://0")
+    #expect(result != nil)
+}
 #endif
