@@ -25,4 +25,18 @@ func getActivePlatformResolves() {
         #expect(platformValue > 0)
     }
 }
+
+@Test
+func getBasePlatformResolves() {
+    // Live-invoke: pass active platform; result should be non-zero on any Apple platform.
+    guard let activePlatform = DyldPriv.getActivePlatform() else {
+        Issue.record("could not obtain active platform for testing")
+        return
+    }
+    let basePlatformValue = DyldPriv.getBasePlatform(activePlatform)
+    #expect(basePlatformValue != nil)
+    if let basePlatformValue {
+        #expect(basePlatformValue > 0)
+    }
+}
 #endif
