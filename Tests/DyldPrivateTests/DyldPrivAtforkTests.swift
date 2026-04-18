@@ -12,4 +12,14 @@ func atforkPrepareResolves() {
     )
     #expect(probeFunction != nil)
 }
+
+@Test
+func atforkParentResolves() {
+    // Resolution-only: do NOT invoke — this function manipulates fork state.
+    let probeFunction = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedDyldPrivAtforkSymbols.$atforkParent,
+        as: DyldPriv.AtforkParentFunction.self
+    )
+    #expect(probeFunction != nil)
+}
 #endif
