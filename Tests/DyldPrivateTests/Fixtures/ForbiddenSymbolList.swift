@@ -99,6 +99,15 @@ enum ForbiddenSymbolList {
         "dyld_get_program_sdk_version",
         "dyld_get_program_sdk_watch_os_version",
         "dyld_get_program_min_watch_os_version",
+        // dyld_priv.h — shared cache (new)
+        "dyld_shared_cache_iterate_text",
+        "dyld_shared_cache_find_iterate_text",
+        "_dyld_is_memory_immutable",
+        "_dyld_get_shared_cache_uuid",
+        "_dyld_shared_cache_optimized",
+        "_dyld_shared_cache_is_locally_built",
+        "_dyld_shared_cache_real_path",
+        "dyld_need_closure",
         // dyld_priv.h — ObjC notify
         "_dyld_objc_notify_register",
         "_dyld_objc_register_callbacks",

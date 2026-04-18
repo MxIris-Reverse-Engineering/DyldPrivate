@@ -123,6 +123,19 @@ enum ObfuscatedDyldPrivVersionWatchOSSymbols {
 }
 #endif
 
+enum ObfuscatedDyldPrivSharedCacheSymbols {
+    static #Obfuscate {
+        let sharedCacheIterateText = "dyld_shared_cache_iterate_text"
+        let sharedCacheFindIterateText = "dyld_shared_cache_find_iterate_text"
+        let isMemoryImmutable = "_dyld_is_memory_immutable"
+        let getSharedCacheUUID = "_dyld_get_shared_cache_uuid"
+        let sharedCacheIsOptimized = "_dyld_shared_cache_optimized"
+        let sharedCacheIsLocallyBuilt = "_dyld_shared_cache_is_locally_built"
+        let sharedCacheRealPath = "_dyld_shared_cache_real_path"
+        let needClosure = "dyld_need_closure"
+    }
+}
+
 enum ObfuscatedDyldPrivObjCNotifySymbols {
     static #Obfuscate {
         let objcNotifyRegister = "_dyld_objc_notify_register"
