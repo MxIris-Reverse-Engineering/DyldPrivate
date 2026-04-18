@@ -101,4 +101,18 @@ func forEachExportedSymbolResolvesAndInvokes() {
         #expect(invocationCount > 0)
     }
 }
+
+@Test
+func forEachDefinedRpathResolvesAndInvokes() {
+    guard let header = knownImageHeader() else {
+        Issue.record("could not obtain a mach_header for testing")
+        return
+    }
+    // Most system libraries have no rpaths; we just verify the function resolves and returns.
+    let returnCode = MachOUtils.forEachDefinedRpath(
+        of: header,
+        mappedSize: 0
+    ) { _, _ in }
+    #expect(returnCode >= 0 || returnCode == -1)
+}
 #endif

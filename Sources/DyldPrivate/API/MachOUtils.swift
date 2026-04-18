@@ -149,4 +149,44 @@ extension MachOUtils {
         return function(header, mappedSize, block)
     }
 }
+
+// MARK: - Function 5: macho_for_each_defined_rpath
+
+extension MachOUtils {
+    public typealias ForEachDefinedRpathFunction = @convention(c) (
+        UnsafePointer<mach_header>?,
+        Int,
+        @convention(block) (UnsafePointer<CChar>?, UnsafeMutablePointer<Bool>?) -> Void
+    ) -> CInt
+
+    private static let forEachDefinedRpathFunction = DyldSymbolResolver.resolve(
+        symbol: ObfuscatedMachOUtilsSymbols.$machoForEachDefinedRpath,
+        as: ForEachDefinedRpathFunction.self
+    )
+
+    /// Iterates over all rpaths defined in an image.
+    /// - Parameters:
+    ///   - header: The mach header of the image to inspect.
+    ///   - mappedSize: Pass 0 when the image is already loaded by dyld.
+    ///   - body: Called for each rpath with the rpath string and a stop flag.
+    ///           Set `stop` to `true` to halt iteration.
+    /// - Returns: The C function's return code, or -1 if the symbol could not be resolved.
+    @discardableResult
+    public static func forEachDefinedRpath(
+        of header: UnsafePointer<mach_header>,
+        mappedSize: Int,
+        _ body: @escaping (_ rpath: String, _ stop: inout Bool) -> Void
+    ) -> CInt {
+        guard let function = forEachDefinedRpathFunction else {
+            return -1
+        }
+        let block: @convention(block) (UnsafePointer<CChar>?, UnsafeMutablePointer<Bool>?) -> Void = { rpath, stop in
+            guard let rpath, let stop else { return }
+            var localStop = stop.pointee
+            body(String(cString: rpath), &localStop)
+            stop.pointee = localStop
+        }
+        return function(header, mappedSize, block)
+    }
+}
 #endif
